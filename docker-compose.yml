@@ -1,0 +1,39 @@
+version: '3'
+
+# docker-compose up -d
+services:
+
+  # https://hub.docker.com/_/mysql
+  db:
+    image: mysql:${MYSQL_VERSION}
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DB_NAME}
+      MYSQL_USER: ${MYSQL_DB_USER}
+      MYSQL_PASSWORD: ${MYSQL_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_DB_ROOT_PASSWORD}
+    volumes:
+      - ${MYSQL_FILES_LOCAL}:${MYSQL_FILES_CONTAINER}
+
+  # https://hub.docker.com/_/wordpress
+  wordpress:
+    image: wordpress:${WP_VERSION}
+    ports:
+      - 80:80 # сайт с WordPress будет доступен по адресу http://localhost
+    environment:
+      WORDPRESS_DB_HOST: db # название сервиса базы данных
+      WORDPRESS_DB_USER: ${MYSQL_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${MYSQL_DB_NAME}
+    depends_on:
+      - db # текущий сервис запустится только после указанного здесь сервиса
+    volumes:
+      - ${DEV_FILES_LOCAL}${DEV_FOLDER_NAME}:${DEV_FILES_CONTAINER}${DEV_FOLDER_NAME}
+      - ${WP_FILES_LOCAL}:${WP_FILES_CONTAINER}
+
+  # https://hub.docker.com/_/phpmyadmin
+  phpmyadmin:
+    image: phpmyadmin
+    depends_on:
+      - db # текущий сервис запустится только после указанного здесь сервиса
+    ports:
+      - 8081:80 # phpmyadmin будет доступна по адресу http://localhost:8081
